@@ -17,8 +17,8 @@ Provides data setup, process, and evaluation of 2 complementary training modes;
 
 ## Installation
 
-git clone https://github.com/yourusername/mpdd_segmentation.git
-cd mpdd_segmentation
+`git clone https://github.com/yourusername/mpdd_segmentation.git`
+`cd mpdd_segmentation`
 
 
 `run.py` trains shared_unet over all metals, then compares plain_u_net model over each metal, and compares performance on all metals.
