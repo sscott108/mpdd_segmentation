@@ -8,7 +8,6 @@ import torch
 
 
 def discover_metals(root):
-    """Return sorted list of subfolders that look like MVTec subdatasets (have train/good)."""
     root = Path(root)
     metals = []
     for p in sorted([d for d in root.iterdir() if d.is_dir()]):
@@ -49,7 +48,6 @@ class MVTecReconDataset(Dataset):
         return self.tx(im)
 
     def _find_mask(self, img_path, cls):
-        """Robustly find ground-truth mask for a given test image and defect class."""
         if cls == "good":  # no defects
             return np.zeros((self.img_size, self.img_size), dtype=np.uint8)
 
@@ -78,7 +76,6 @@ class MVTecReconDataset(Dataset):
         mask_path = candidates[0]
 #         print(f"[MASK FOUND] {img_path}  -->  {mask_path}")
 
-        # Load and binarize
         m = Image.open(mask_path).convert("L")
         m = m.resize((self.img_size, self.img_size), Image.NEAREST)
         m = np.array(m)
@@ -95,23 +92,23 @@ class MVTecReconDataset(Dataset):
         if self.return_mask:
             m = self._find_mask(p, cls)
             m = torch.from_numpy(m).float().unsqueeze(0)
-            return x, cls, p, m
+            
+            sample = {'img':x,
+                      'class':cls,
+                      'path':p,
+                      'mask':m}
+            return sample
         else:
-            return x, cls, p
+            sample = {'img':x,
+                      'class':cls,
+                      'path':p}
+            
+            return sample
 
 def list_images(folder):
     return sorted(glob.glob(os.path.join(folder, "*.png")))
   
 class MultiMetalReconDataset(Dataset):
-    """
-    Layout per metal (subdataset):
-      root/<metal>/train/good/*.png
-      root/<metal>/test/<cls>/*.png
-      root/<metal>/ground_truth/<cls>/*.png (optional; only used in test if return_mask=True)
-
-    split = "train"  -> returns x, metal_id, path
-    split = "test"   -> returns x, cls, path, mask (if return_mask), metal_id
-    """
     def __init__(self, root, metals=None, split="train", img_size=256, return_mask=False):
         self.root = Path(root)
         self.metals = metals if metals is not None else discover_metals(root)
@@ -132,7 +129,6 @@ class MultiMetalReconDataset(Dataset):
                 for p in list_images(sd_root/"train/good"):
                     samples.append((str(p), "good", self.metal2id[m]))
         elif split == "test":
-            # Enumerate *all* classes present under each metal/test/
             for m in self.metals:
                 sd_root = self.root/m
                 test_dir = sd_root/"test"
@@ -153,7 +149,6 @@ class MultiMetalReconDataset(Dataset):
         return self.tx(im)
 
     def _find_mask(self, img_path, metal_name, cls):
-        """Find a matching mask for img_path under ground_truth/<cls>/ (if exists)."""
         if cls == "good":
             return np.zeros((self.img_size, self.img_size), dtype=np.uint8)
 
@@ -163,7 +158,6 @@ class MultiMetalReconDataset(Dataset):
             return np.zeros((self.img_size, self.img_size), dtype=np.uint8)
 
         stem = Path(img_path).stem
-        # try a few patterns
         candidates = []
         for e in ("*.png","*.bmp","*.tif","*.jpg","*.jpeg"):
             candidates += glob.glob(str(gt_dir/f"{stem}{Path(img_path).suffix}"))
@@ -188,10 +182,19 @@ class MultiMetalReconDataset(Dataset):
             return x, torch.as_tensor(metal_id, dtype=torch.long), p
         # test
         if self.return_mask:
-            # recover metal name from id
             metal_name = self.metals[metal_id]
             m = self._find_mask(p, metal_name, cls)
-            m = torch.from_numpy(m).float().unsqueeze(0)  # [1,H,W]
-            return x, cls, p, m, torch.as_tensor(metal_id, dtype=torch.long)
+            m = torch.from_numpy(m).float().unsqueeze(0)
+            
+            sample = {'img':x,
+                      'class':cls,
+                      'path':p,
+                      'mask':m,
+                      'm_id': torch.as_tensor(metal_id, dtype=torch.long)}
+            return sample
         else:
-            return x, cls, p, torch.as_tensor(metal_id, dtype=torch.long)
+            sample = {'img':x,
+                      'class':cls,
+                      'path':p,
+                      'm_id': torch.as_tensor(metal_id, dtype=torch.long)}
+            return sample

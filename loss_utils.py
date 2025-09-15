@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def laplacian_conv(img):
     k = torch.tensor([[0,1,0],[1,-4,1],[0,1,0]], dtype=img.dtype, device=img.device).view(1,1,3,3)
-    k = k.repeat(img.shape[1],1,1,1)  # depthwise
+    k = k.repeat(img.shape[1],1,1,1)  
     return F.conv2d(img, k, padding=1, groups=img.shape[1])
 
 def recon_loss(x, x_hat, alpha=0.9, beta=0.1):
@@ -21,7 +21,6 @@ def recon_loss(x, x_hat, alpha=0.9, beta=0.1):
 def get_loss(name):
     if name == "l1_edge":
         return recon_loss
-
 
 @torch.no_grad()
 def reconstruct(model, x):
@@ -45,9 +44,7 @@ def overlay_and_save(img_np, heat_np, out_path):
 
 def evaluate_pixel_level(all_preds, all_masks):
     y_pred = np.concatenate([p.flatten() for p in all_preds], axis=0)
-    y_true = np.concatenate([m.flatten() for m in all_masks], axis=0)
-    # AUROC
-    
+    y_true = np.concatenate([m.flatten() for m in all_masks], axis=0)    
     auroc = roc_auc_score(y_true, y_pred)
   
     # Dice at best threshold (sweep 100 thresholds)

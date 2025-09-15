@@ -16,19 +16,26 @@ def test(model, loader, device, save_dir, use_shared=False):
     with torch.no_grad():
         for batch in tqdm(loader, desc="Testing"):
             if use_shared:
-                x, cls, pth, m, metal_id = batch
-                x = x.to(device)
-                metal_id = metal_id.to(device)
-                xhat = model(x, metal_ids=metal_id)
+                x        = batch['img'].to(device)   
+                cls      = batch['class']
+                m        = batch['mask'].to(device)
+                metal_id = batch['m_id'].to(device)
+                pth      = batch['path'].to(device)
+                
+                xh       = model(x, metal_ids=metal_id)
+                
             else:
-                x, cls, pth, m = batch
-                x = x.to(device)
-                xhat = model(x)
+                x        = batch['img'].to(device)
+                cls      = batch['class']
+                m        = batch['mask']
+                pth      = batch['path'].to(device)
+                xh       = model(x)
+             
 
             if isinstance(pth, (tuple, list)):pth = pth[0]
 
             # residual map
-            res = (x - xhat).abs().mean(dim=1, keepdim=True)
+            res = (x - xh).abs().mean(dim=1, keepdim=True)
             res = res.squeeze().cpu().numpy()
             res = cv2.GaussianBlur(res, (0,0), sigmaX=1.0)
             res = normalize_map(res)
@@ -58,7 +65,6 @@ def test(model, loader, device, save_dir, use_shared=False):
         pb = (res_np >= best_t).astype(np.uint8) * 255
         cv2.imwrite(os.path.join(mask_dir, Path(p).stem + "_predmask.png"), pb)
 
-    # Save metrics
     with open(os.path.join(save_dir, "metrics.json"), "w") as f:
         json.dump(summary, f, indent=2)
 

@@ -12,13 +12,12 @@ def train_model(model, loader, loss_fn, epochs=50, lr=1e-3, device="cpu", use_sh
         losses=[]
         for batch in tqdm(loader, desc=f"Epoch {ep}/{epochs}", leave=False):
             if use_shared:
-                x, metal_id, _ = batch
-                x = x.to(device, non_blocking=True)
-                metal_id = metal_id.to(device, non_blocking=True)
-                xh = model(x, metal_ids=metal_id)
+                x        = batch['img'].to(device)            
+                metal_id = batch['m_id'].to(device)
+                
+                xh       = model(x, metal_ids=metal_id)
             else:
-                x, _, _ = batch
-                x = x.to(device)
+                x  = batch['img'].to(device)
                 xh = model(x)
 
             loss = loss_fn(x, xh)
