@@ -1,0 +1,15 @@
+{
+  "metal": "metal_plate",
+  "plain_unet": {
+    "pixel_AUROC": 0.10916588528415258,
+    "best_Dice": 0.19830531367339968,
+    "best_threshold": 0.0,
+    "image_AUROC": 0.7009750812567713
+  },
+  "shared_unet": {
+    "pixel_AUROC": 0.5582574631150153,
+    "best_Dice": 0.25255791435628033,
+    "best_threshold": 0.25252525252525254,
+    "image_AUROC": 0.2854821235102925
+  }
+}

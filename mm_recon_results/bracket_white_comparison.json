@@ -1,0 +1,15 @@
+{
+  "metal": "bracket_white",
+  "plain_unet": {
+    "pixel_AUROC": 0.9567699970840494,
+    "best_Dice": 0.0068316013390233915,
+    "best_threshold": 0.9191919191919192,
+    "image_AUROC": 0.6272222222222221
+  },
+  "shared_unet": {
+    "pixel_AUROC": 0.9362167906851349,
+    "best_Dice": 0.005187078843980276,
+    "best_threshold": 0.6262626262626263,
+    "image_AUROC": 0.5355555555555555
+  }
+}

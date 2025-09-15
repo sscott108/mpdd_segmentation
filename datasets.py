@@ -179,8 +179,11 @@ class MultiMetalReconDataset(Dataset):
         p, cls, metal_id = self.samples[i]
         x = self._read_img(p)
         if self.split == "train":
-            return x, torch.as_tensor(metal_id, dtype=torch.long), p
-        # test
+            sample = {'img':x,
+                      'm_id': torch.as_tensor(metal_id, dtype=torch.long),
+                      'path':p}
+            return sample
+        
         if self.return_mask:
             metal_name = self.metals[metal_id]
             m = self._find_mask(p, metal_name, cls)

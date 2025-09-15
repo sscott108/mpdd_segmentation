@@ -19,16 +19,16 @@ def test(model, loader, device, save_dir, use_shared=False):
                 x        = batch['img'].to(device)   
                 cls      = batch['class']
                 m        = batch['mask'].to(device)
-                metal_id = batch['m_id'].to(device)
-                pth      = batch['path'].to(device)
+                metal_id = batch['m_id']
+                pth      = batch['path']
                 
                 xh       = model(x, metal_ids=metal_id)
                 
             else:
                 x        = batch['img'].to(device)
                 cls      = batch['class']
-                m        = batch['mask']
-                pth      = batch['path'].to(device)
+                m        = batch['mask'].to(device)
+                pth      = batch['path']
                 xh       = model(x)
              
 
